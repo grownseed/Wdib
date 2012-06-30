@@ -7,8 +7,11 @@ var express = require('express'),
   config = require('./config');
 
 var app = module.exports = express.createServer();
-// Configuration
 
+//connect to yelp api
+var yelp = require('yelp').createClient(config.yelp);
+
+// Configuration
 app.configure(function()
 {
   app.set('views', __dirname + '/views');
@@ -37,7 +40,7 @@ app.dynamicHelpers(
   flash: function(req, res){ return req.flash(); }
 });
 
-require('./boot')(app, config, fs);
+require('./boot')(app, config, fs, yelp);
 
 app.listen(config.port, function()
 {

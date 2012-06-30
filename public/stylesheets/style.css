@@ -8,3 +8,14 @@ a
 {
   color: #00B7FF;
 }
+
+#map_container
+{
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0.3;
+  bottom: 0;
+}

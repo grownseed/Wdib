@@ -1,19 +1,16 @@
 {
   "name": "wdib",
-  "version": "0.0.1",
+  "version": "0.0.1-1",
   "private": true,
-  "dependencies":
-  {
+  "dependencies": {
     "express": "2.5.8",
     "jade": ">= 0.0.1",
     "yelp": "0.1.1"
   },
-  "scripts":
-  {
+  "scripts": {
     "start": "app.js"
   },
-  "engines":
-  {
+  "engines": {
     "node": "0.6.x"
   },
   "subdomain": "wdib"

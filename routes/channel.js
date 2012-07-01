@@ -7,10 +7,54 @@ app.get('/channel/new', function(req, res)
 	channels[channel_id] =
 	{
 		users: {},
-		term: req.query['term']
+		term: req.query['term'],
+		last_updated: new Date().getTime()
 	};
 
 	res.send(JSON.stringify(channel_id));
+});
+
+app.get('/channel/updateUser', function(req, res)
+{
+	console.log(req.params);
+	if (req.query['location'] || req.query['name'])
+	{
+		if (req.query['location'])
+			channels[req.query['channel_id']].users[req.sessionID].location = req.query['location'];
+
+		if (req.query['name'])
+			channels[req.query['channel_id']].users[req.sessionID].location = req.query['name'];
+
+		channels[req.query['channel_id']].last_updated = new Date().getTime();
+	}
+
+	res.send(JSON.stringify({}));
+});
+
+app.get('/channel/update', function(req, res)
+{
+	if (req.query['channel_id'])
+	{
+		if (channels[req.query['channel_id']])
+		{
+			if (req.query['ts'])
+			{
+				if (req.query['ts'] == channels[req.query['channel_id']].last_updated)
+				{
+					res.send(JSON.stringify('NO_UPDATE'));
+				}else{
+					req.session.channel_id = req.query['channel_id'];
+					res.redirect('/channel/results');
+				}
+			}else{
+				res.send('No timestamp', 500);
+			}
+		}else{
+			res.send('This channel does not exist', 500);
+		}
+	}else{
+		res.send('No channel specified', 500);
+	}
 });
 
 app.get('/channel/connect', function(req, res)
@@ -23,8 +67,11 @@ app.get('/channel/connect', function(req, res)
 			{
 				channels[req.query['channel_id']].users[req.sessionID] =
 				{
-					location: req.query['location']
+					location: req.query['location'],
+					name: 'anonymous'
 				};
+
+				channels[req.query['channel_id']].last_updated = new Date().getTime();
 			}
 
 			req.session.channel_id = req.query['channel_id'];
@@ -33,7 +80,7 @@ app.get('/channel/connect', function(req, res)
 			res.send('This channel does not exist');
 		}
 	}else{
-		res.send('No channel specified', 500);
+		res.send('No channel specified **', 500);
 	}
 });
 
@@ -65,9 +112,9 @@ app.get('/channel/results', function(req, res)
 			yelp.search({term: req.query['term'], ll: centroid.latitude + ',' + centroid.longitude}, function(err, locations)
 			{
 				if (!err)
-					res.send(JSON.stringify({locations: locations, users: channels[channel_id].users}));
+					res.send(JSON.stringify({locations: locations, users: channels[channel_id].users, ts: channels[channel_id].last_updated }));
 				else
-					res.send(err.error.text, 500);
+					res.send(JSON.stringify(err), 500);
 			});
 		}else{
 			res.send('This channel does not exist');

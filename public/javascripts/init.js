@@ -1,4 +1,4 @@
-window.addEvent('domready', function()
+window.addEvent('load', function()
 {
 	//add error to notifications
 	var error = function(msg)
@@ -10,7 +10,12 @@ window.addEvent('domready', function()
 	{
 		var map,
 			//create map container
-			map_el = new Element('div', {'id': 'map_container'}).inject(document.body);
+			map_el = new Element('div', {'id': 'map_container'}).inject(document.body),
+			markers = [],
+			ts = 0,
+			last_location,
+			dataRefresh = null,
+			locationRefresh = null;
 
 		//initialize map
 		var initMap = function(position)
@@ -37,6 +42,8 @@ window.addEvent('domready', function()
 				map: map,
 				title:"USER"
 			});
+
+			markers.push(marker);
 		};
 
 		//add business marker on map
@@ -54,11 +61,84 @@ window.addEvent('domready', function()
 					title:"BUSINESS",
 					icon: pinImage
 				});
+
+			markers.push(marker);
+		};
+
+		//update request
+		var updateRequest = new Request.JSON(
+			{
+				url: '/channel/update',
+				link: 'cancel',
+				method: 'get',
+				onSuccess: function(data)
+				{
+					if (data != 'NO_UPDATE')
+						updateMarkers(data);
+				}
+			});
+
+		//update location
+		var updateLocation = function()
+		{
+			navigator.geolocation.getCurrentPosition(function(location)
+			{
+				if (location.coords.latitude != last_location.coords.latitude || location.coords.longitude != last_location.coords.longitude)
+				{
+					last_location = location;
+
+					new Request.JSON(
+						{
+							url: '/channel/updateUser',
+							method: 'get',
+							data:
+							{
+								channel_id: channel_id,
+								location: location
+							}
+						}).send();
+				}
+			});
+		};
+
+		//clear markers
+		var clearMarkers = function()
+		{
+			markers.each(function(marker)
+			{
+				marker.setMap(null);
+			});
+		};
+
+		//update markers
+		var updateMarkers = function(data)
+		{
+			clearMarkers();
+
+			ts = data.ts;
+
+			Object.each(data.users, function(user)
+			{
+				plotUser(new google.maps.LatLng(user.location.coords.latitude, user.location.coords.longitude));
+			});
+
+			data.locations.businesses.each(function(business)
+			{
+				plotBusiness(business);
+			});
+
+			//reset update interval
+			if (dataRefresh)
+				clearInterval(dataRefresh);
+
+			dataRefresh = updateRequest.send.periodical(2000, updateRequest, 'channel_id=' + channel_id + '&ts=' + ts);
 		};
 
 		//join a channel
-		var connectChannel = function(channel_id, location)
+		var connectChannel = function(location)
 		{
+			last_location = location;
+
 			new Request.JSON(
 				{
 					url: '/channel/connect',
@@ -70,17 +150,11 @@ window.addEvent('domready', function()
 					method: 'get',
 					onSuccess: function(data)
 					{
-						Object.each(data.users, function(user)
-						{
-							plotUser(new google.maps.LatLng(user.location.coords.latitude, user.location.coords.longitude));
-						});
-
-						data.locations.businesses.each(function(business)
-						{
-							plotBusiness(business);
-						});
+						updateMarkers(data);
 
 						$(document.body).addClass('channel_on');
+
+						locationRefresh = updateLocation.periodical(10000);
 					},
 					onFailure: function(err)
 					{
@@ -100,11 +174,13 @@ window.addEvent('domready', function()
 						term: search
 					},
 					method: 'get',
-					onSuccess: function(channel_id)
+					onSuccess: function(channel)
 					{
+						channel_id = channel;
+
 						history.pushState(null, search, channel_id);
 
-						connectChannel(channel_id, location);
+						connectChannel(location);
 					}
 				}).send();
 		};
@@ -117,10 +193,9 @@ window.addEvent('domready', function()
 				initMap(position);
 
 				if (channel_id.trim() != '')
-					connectChannel(channel_id, location);
+					connectChannel(location);
 				else
 					plotUser(position);
-
 
 				//search field
 				var search_default = 'What are you after?',

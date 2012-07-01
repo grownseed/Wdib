@@ -10,7 +10,8 @@ html
     script(src='/javascripts/init.js')
     script
       var channel_id = '#{channel_id}';
-  body
+  - var body_class = (channel_id != '' ? 'channel_on' : '')
+  body(class=body_class)
     #notifications
       - for (var i in flash)
         - for (var j in flash[i])

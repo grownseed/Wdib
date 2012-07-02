@@ -16,7 +16,6 @@ app.get('/channel/new', function(req, res)
 
 app.get('/channel/updateUser', function(req, res)
 {
-	console.log(req.params);
 	if (req.query['location'] || req.query['name'])
 	{
 		if (req.query['location'])

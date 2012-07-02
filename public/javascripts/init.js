@@ -131,7 +131,7 @@ window.addEvent('load', function()
 			if (dataRefresh)
 				clearInterval(dataRefresh);
 
-			dataRefresh = updateRequest.send.periodical(2000, updateRequest, 'channel_id=' + channel_id + '&ts=' + ts);
+			dataRefresh = updateRequest.send.periodical(5000, updateRequest, 'channel_id=' + channel_id + '&ts=' + ts);
 		};
 
 		//join a channel

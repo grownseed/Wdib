@@ -4,7 +4,8 @@
 
 var express = require('express'),
   fs = require('fs'),
-  config = require('./config');
+  config = require('./config'),
+	RedisStore = require('connect-redis')(express);
 
 var app = module.exports = express.createServer();
 
@@ -19,7 +20,7 @@ app.configure(function()
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-  app.use(express.session({ secret: config.secret }));
+  app.use(express.session({ secret: config.secret, store: new RedisStore(config.redis) }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });

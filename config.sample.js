@@ -15,3 +15,12 @@ exports.yelp =
 	token: 'token',
 	token_secret: 'token secret'
 };
+
+//Redis DB
+exports.redis =
+{
+	host: 'localhost',
+	port: 9326,
+	db: 'db',
+	pass: 'pass'
+};

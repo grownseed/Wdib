@@ -74,6 +74,7 @@ app.get('/channel/connect', function(req, res)
 			}
 
 			req.session.channel_id = req.query['channel_id'];
+
 			res.redirect('/channel/results');
 		}else{
 			res.send('This channel does not exist');
@@ -111,7 +112,7 @@ app.get('/channel/results', function(req, res)
 			yelp.search({term: req.query['term'], ll: centroid.latitude + ',' + centroid.longitude}, function(err, locations)
 			{
 				if (!err)
-					res.send(JSON.stringify({locations: locations, users: channels[channel_id].users, ts: channels[channel_id].last_updated }));
+					res.send(JSON.stringify({locations: locations, users: channels[channel_id].users, ts: channels[channel_id].last_updated, centroid: centroid }));
 				else
 					res.send(JSON.stringify(err), 500);
 			});

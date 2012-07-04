@@ -14,8 +14,7 @@ window.addEvent('load', function()
 			markers = [],
 			ts = 0,
 			last_location,
-			dataRefresh = null,
-			locationRefresh = null;
+			dataRefresh = null;
 
 		//initialize map
 		var initMap = function(position)
@@ -110,19 +109,33 @@ window.addEvent('load', function()
 		//update markers
 		var updateMarkers = function(data)
 		{
+			var centroidLatLng = new google.maps.LatLng(data.centroid.latitude, data.centroid.longitude),
+				latlngBounds = new google.maps.LatLngBounds(centroidLatLng, centroidLatLng);
+
 			clearMarkers();
 
 			ts = data.ts;
 
 			Object.each(data.users, function(user)
 			{
-				plotUser(new google.maps.LatLng(user.location.coords.latitude, user.location.coords.longitude));
+				var userLatLng = new google.maps.LatLng(user.location.coords.latitude, user.location.coords.longitude);
+
+				latlngBounds.extend(userLatLng);
+
+				plotUser(userLatLng);
 			});
 
 			data.locations.businesses.each(function(business)
 			{
+				var businessLatLng = new google.maps.LatLng(business.location.coordinate.latitude, business.location.coordinate.longitude);
+
+				latlngBounds.extend(businessLatLng);
+
 				plotBusiness(business);
 			});
+
+			//pan map
+			map.fitBounds(latlngBounds);
 
 			//reset update interval
 			if (dataRefresh)
@@ -150,7 +163,7 @@ window.addEvent('load', function()
 						updateMarkers(data);
 
 						$(document.body).addClass('channel_on');
-						
+
 						navigator.geolocation.watchPosition(updateLocation);
 					},
 					onFailure: function(err)

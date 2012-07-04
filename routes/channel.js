@@ -96,7 +96,8 @@ app.get('/channel/results', function(req, res)
 		{
 			//get centroid of all users within channel
 			var centroid = {latitude: 0, longitude: 0},
-				users_nb = 0;
+				users_nb = 0,
+				users = [];
 
 			for (var user in channels[channel_id].users)
 			{
@@ -104,6 +105,9 @@ app.get('/channel/results', function(req, res)
 				centroid.longitude += parseFloat(channels[channel_id].users[user].location.coords.longitude);
 
 				users_nb++;
+
+				users.push(channels[channel_id].users[user]);
+				users[users.length - 1].me = (user == req.sessionID);
 			}
 
 			centroid.latitude /= users_nb;
@@ -112,7 +116,7 @@ app.get('/channel/results', function(req, res)
 			yelp.search({term: req.query['term'], ll: centroid.latitude + ',' + centroid.longitude}, function(err, locations)
 			{
 				if (!err)
-					res.send(JSON.stringify({locations: locations, users: channels[channel_id].users, ts: channels[channel_id].last_updated, centroid: centroid }));
+					res.send(JSON.stringify({locations: locations, users: users, ts: channels[channel_id].last_updated, centroid: centroid }));
 				else
 					res.send(JSON.stringify(err), 500);
 			});

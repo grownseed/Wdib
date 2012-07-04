@@ -33,14 +33,24 @@ window.addEvent('load', function()
 		};
 
 		//add user marker on map
-		var plotUser = function(position)
+		var plotUser = function(position, me)
 		{
+			var pinImage = new google.maps.MarkerImage
+				(
+					'/images/marker_' + (me ? 'me' : 'user') + '.png',
+					new google.maps.Size(40, 40),
+					new google.maps.Point(0,0),
+					new google.maps.Point(20, 40),
+					new google.maps.Size(40, 40)
+				);
+
 			var marker = new google.maps.Marker(
-			{
-				position: position,
-				map: map,
-				title:"USER"
-			});
+				{
+					position: position,
+					map: map,
+					title:"USER",
+					icon: pinImage
+				});
 
 			markers.push(marker);
 		};
@@ -48,10 +58,14 @@ window.addEvent('load', function()
 		//add business marker on map
 		var plotBusiness = function(business)
 		{
-			var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + '00F',
-				new google.maps.Size(21, 34),
-				new google.maps.Point(0,0),
-				new google.maps.Point(10, 34));
+			var pinImage = new google.maps.MarkerImage
+				(
+					'/images/marker_business.png',
+					new google.maps.Size(40, 40),
+					new google.maps.Point(0,0),
+					new google.maps.Point(20, 40),
+					new google.maps.Size(40, 40)
+				);
 
 			var marker = new google.maps.Marker(
 				{
@@ -122,7 +136,7 @@ window.addEvent('load', function()
 
 				latlngBounds.extend(userLatLng);
 
-				plotUser(userLatLng);
+				plotUser(userLatLng, user.me);
 			});
 
 			data.locations.businesses.each(function(business)
@@ -205,7 +219,7 @@ window.addEvent('load', function()
 				if (channel_id.trim() != '')
 					connectChannel(location);
 				else
-					plotUser(position);
+					plotUser(position, true);
 
 				//search field
 				var search_default = 'What are you after?',

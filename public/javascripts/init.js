@@ -79,26 +79,23 @@ window.addEvent('load', function()
 			});
 
 		//update location
-		var updateLocation = function()
+		var updateLocation = function(location)
 		{
-			navigator.geolocation.getCurrentPosition(function(location)
+			if (location.coords.latitude != last_location.coords.latitude || location.coords.longitude != last_location.coords.longitude)
 			{
-				if (location.coords.latitude != last_location.coords.latitude || location.coords.longitude != last_location.coords.longitude)
-				{
-					last_location = location;
+				last_location = location;
 
-					new Request.JSON(
+				new Request.JSON(
+					{
+						url: '/channel/updateUser',
+						method: 'get',
+						data:
 						{
-							url: '/channel/updateUser',
-							method: 'get',
-							data:
-							{
-								channel_id: channel_id,
-								location: location
-							}
-						}).send();
-				}
-			});
+							channel_id: channel_id,
+							location: location
+						}
+					}).send();
+			}
 		};
 
 		//clear markers
@@ -153,8 +150,8 @@ window.addEvent('load', function()
 						updateMarkers(data);
 
 						$(document.body).addClass('channel_on');
-
-						locationRefresh = updateLocation.periodical(10000);
+						
+						navigator.geolocation.watchPosition(updateLocation);
 					},
 					onFailure: function(err)
 					{
